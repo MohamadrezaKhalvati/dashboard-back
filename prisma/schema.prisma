@@ -1,0 +1,129 @@
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+model User {
+    id                 String   @id @default(uuid()) @db.Uuid
+    fullname           String
+    imageUrl           String?
+    username           String   @unique
+    password           String
+    email              String   @unique
+    createdDate        DateTime @default(now())
+    updatedDate        DateTime @default(now())
+    changePasswordCode Int?
+    role               Role     @default(member)
+
+    Presentation Presentation[]
+    Course       Course[]
+    Comment      Comment[]
+    Post         Post[]
+}
+
+model Post {
+    id          String    @id @default(uuid()) @db.Uuid
+    title       String
+    content     String
+    createdDate DateTime  @default(now())
+    updatedDate DateTime  @default(now())
+    author      User      @relation(fields: [userId], references: [id])
+    userId      String    @db.Uuid
+    Comment     Comment[]
+}
+
+model Comment {
+    id          String   @id @default(uuid()) @db.Uuid
+    content     String
+    createdDate DateTime @default(now())
+    updatedDate DateTime @default(now())
+    link        Int
+    author      User     @relation(fields: [userId], references: [id])
+    userId      String   @db.Uuid
+    post        Post     @relation(fields: [postId], references: [id])
+    postId      String   @db.Uuid
+}
+
+model Presentation {
+    id               String   @id @default(uuid()) @db.Uuid
+    title            String
+    summary          String?
+    content          String?
+    createdDate      DateTime @default(now())
+    updatedDate      DateTime @default(now())
+    imageUrl         String?
+    downloadLink     String?
+    slideLink        String
+    presentationTime String?
+    bulletPoint      String?
+    viewCount        Int?     @default(0)
+    presenter        User     @relation(fields: [userId], references: [id])
+    userId           String   @db.Uuid
+}
+
+model Course {
+    id                 String         @id @default(uuid()) @db.Uuid
+    title              String         @unique
+    imageUrl           String?
+    backgroundUrl      String?
+    accessType         String
+    description        String?
+    purposeDescription String?
+    whyDescription     String?
+    educateDescription String?
+    createdDate        DateTime       @default(now())
+    updatedDate        DateTime?      @default(now())
+    status             CourseStatus   @default(Recorded)
+    courseTime         Int?
+    viewCount          Int?           @default(0)
+    presenter          User           @relation(fields: [userId], references: [id])
+    userId             String         @db.Uuid
+    courseModules      CourseModule[]
+    courseLinks        CourseLink[]
+}
+
+model CourseLink {
+    id             String         @id @default(uuid()) @db.Uuid
+    title          String
+    url            String
+    videoTime      Int?
+    videoSize      Int?
+    createdDate    DateTime?      @default(now())
+    updatedDate    DateTime?      @default(now())
+    course         Course         @relation(fields: [courseId], references: [id])
+    courseId       String         @db.Uuid
+    courseModule   CourseModule   @relation("link to module", fields: [courseModuleId], references: [id])
+    courseModuleId String         @db.Uuid
+    CourseModule   CourseModule[] @relation("module to link")
+}
+
+model CourseModule {
+    id           String       @id @default(uuid()) @db.Uuid
+    title        String?
+    createdDate  DateTime     @default(now())
+    updatedDate  DateTime     @default(now())
+    course       Course       @relation(fields: [courseId], references: [id])
+    courseId     String       @db.Uuid
+    courseLink   CourseLink   @relation("module to link", fields: [courseLinkId], references: [id])
+    courseLinkId String       @db.Uuid
+    CourseLink   CourseLink[] @relation("link to module")
+}
+
+enum Role {
+    admin
+    member
+}
+
+enum PostStatus {
+    Archived
+    Published
+}
+
+enum CourseStatus {
+    Recorded
+    Recording
+}
