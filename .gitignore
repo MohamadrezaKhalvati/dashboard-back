@@ -27,8 +27,4 @@ pnpm-lock*
 .settings/
 *.sublime-workspace
 .env
-# IDE - VSCode
-.vscode/*
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
+
